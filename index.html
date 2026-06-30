@@ -1,26 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Summer Growth" />
-<meta name="theme-color" content="#1F5A52" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Summer Growth"/>
+<meta name="theme-color" content="#1F5A52"/>
 <title>Summer Growth</title>
-<style>
-  html, body { margin: 0; padding: 0; background: #FBF3E2; -webkit-text-size-adjust: 100%; }
-  #root { min-height: 100vh; }
-  .boot { display: grid; place-items: center; min-height: 60vh; padding: 24px; text-align: center; color: #6E6051; font-family: -apple-system, system-ui, sans-serif; font-size: 15px; }
-</style>
+<style>html,body{margin:0;padding:0;background:#FBF3E2;-webkit-text-size-adjust:100%}#root{min-height:100vh}.boot{display:grid;place-items:center;min-height:60vh;padding:24px;text-align:center;color:#6E6051;font-family:-apple-system,system-ui,sans-serif;font-size:15px}</style>
 </head>
 <body>
 <div id="root"><div class="boot">Loading Summer Growth…</div></div>
 <script>
-  window.onerror = function(msg, src, line, col, err) {
-    document.getElementById('root').innerHTML = '<div class="boot"><b>Error loading app</b><br><br>' + msg + '<br><small>' + src + ' line ' + line + '</small></div>';
-  };
-  var process = { env: { NODE_ENV: 'production' } };
+window.onerror=function(msg,src,line){document.getElementById('root').innerHTML='<div class="boot"><b>Error</b><br><br>'+msg+'<br><small>line '+line+'</small></div>';};
+var process={env:{NODE_ENV:'production'}};
 </script>
 <script>/**
  * @license React
@@ -322,15 +316,17 @@ var d=null!=c&&c.hydratedSources||null,e=!1,f="",g=aj;null!==c&&void 0!==c&&(!0=
 function(a,b,c){if(!Vd(b))throw Error(m(200));return Wd(null,a,b,!1,c)};Q.unmountComponentAtNode=function(a){if(!Vd(a))throw Error(m(40));return a._reactRootContainer?(yb(function(){Wd(null,null,a,!1,function(){a._reactRootContainer=null;a[Ja]=null})}),!0):!1};Q.unstable_batchedUpdates=Tf;Q.unstable_renderSubtreeIntoContainer=function(a,b,c,d){if(!Vd(c))throw Error(m(200));if(null==a||void 0===a._reactInternals)throw Error(m(38));return Wd(a,b,c,!1,d)};Q.version="18.3.1-next-f1338f8080-20240426"});
 })();
 </script>
-<script>function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
-const {
+<script>const {
   useState,
   useEffect,
-  useMemo
+  useMemo,
+  useRef,
+  useCallback
 } = React;
-const clone = o => window.structuredClone ? structuredClone(o) : JSON.parse(JSON.stringify(o));
+const clone = o => JSON.parse(JSON.stringify(o));
 
-/* ---------- on-device storage (this iPad) ---------- */
+/* ---------- storage ---------- */
+const mem = new Map();
 const store = {
   async get(k) {
     try {
@@ -346,22 +342,56 @@ const store = {
   }
 };
 
-/* ---------- inline icons (Lucide-style) ---------- */
-const mk = (paths, fill) => ({
+/* ---------- date helpers ---------- */
+const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const mondayOf = d => {
+  const x = new Date(d);
+  const off = (x.getDay() + 6) % 7;
+  x.setDate(x.getDate() - off);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+const fromYmd = s => new Date(s + "T00:00:00");
+const prettyDate = d => d.toLocaleDateString(undefined, {
+  weekday: "long",
+  month: "long",
+  day: "numeric"
+});
+const todayStr = () => ymd(new Date());
+const daysUntilSept = () => {
+  const now = new Date();
+  const end = new Date(2026, 7, 5); // Aug 5 — first day of school
+  if (end < now) return 0;
+  return Math.ceil((end - now) / 864e5);
+};
+const isSunday = () => new Date().getDay() === 0;
+
+/* ---------- usePrevious ---------- */
+function usePrevious(val) {
+  const ref = useRef(val);
+  useEffect(() => {
+    ref.current = val;
+  });
+  return ref.current;
+}
+
+/* ---------- inline icons ---------- */
+const mk = paths => ({
   size = 20,
   style,
   ...p
-}) => /*#__PURE__*/React.createElement("svg", _extends({
+}) => /*#__PURE__*/React.createElement("svg", {
   width: size,
   height: size,
   viewBox: "0 0 24 24",
-  fill: fill || "none",
+  fill: "none",
   stroke: "currentColor",
   strokeWidth: "2",
   strokeLinecap: "round",
   strokeLinejoin: "round",
-  style: style
-}, p), paths);
+  style: style,
+  ...p
+}, paths);
 const Sun = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("circle", {
   cx: "12",
   cy: "12",
@@ -369,6 +399,9 @@ const Sun = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.cr
 }), /*#__PURE__*/React.createElement("path", {
   d: "M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"
 })));
+const Moon = mk(/*#__PURE__*/React.createElement("path", {
+  d: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
+}));
 const BookOpen = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
   d: "M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"
 }), /*#__PURE__*/React.createElement("path", {
@@ -404,9 +437,6 @@ const Circle = mk(/*#__PURE__*/React.createElement("circle", {
 }));
 const Plus = mk(/*#__PURE__*/React.createElement("path", {
   d: "M12 5v14M5 12h14"
-}));
-const Minus = mk(/*#__PURE__*/React.createElement("path", {
-  d: "M5 12h14"
 }));
 const Flame = mk(/*#__PURE__*/React.createElement("path", {
   d: "M12 2c3 4 5 6 5 9a5 5 0 0 1-10 0c0-1.6.6-2.7 1.6-3.7C8 9 9 11 9 11c0-3 1.5-6 3-9z"
@@ -460,23 +490,31 @@ const Copy = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.c
 const Check = mk(/*#__PURE__*/React.createElement("path", {
   d: "M5 12l5 5L20 6"
 }));
-
-/* ---------- date helpers ---------- */
-const ymd = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-const mondayOf = d => {
-  const x = new Date(d);
-  const off = (x.getDay() + 6) % 7;
-  x.setDate(x.getDate() - off);
-  x.setHours(0, 0, 0, 0);
-  return x;
-};
-const fromYmd = s => new Date(s + "T00:00:00");
-const prettyDate = d => d.toLocaleDateString(undefined, {
-  weekday: "long",
-  month: "long",
-  day: "numeric"
-});
-const todayStr = () => ymd(new Date());
+const Shuffle = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+  d: "M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"
+})));
+const Snowflake = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+  d: "M12 2v20M2 12h20M4.9 4.9l14.2 14.2M19.1 4.9L4.9 19.1"
+})));
+const MessageCircle = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("path", {
+  d: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+})));
+const Key = mk(/*#__PURE__*/React.createElement("g", null, /*#__PURE__*/React.createElement("circle", {
+  cx: "7.5",
+  cy: "15.5",
+  r: "5.5"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M21 2l-9.6 9.6M15.5 7.5l3 3"
+})));
+const Star = mk(/*#__PURE__*/React.createElement("polygon", {
+  points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"
+}));
+const ChevronRight = mk(/*#__PURE__*/React.createElement("path", {
+  d: "M9 18l6-6-6-6"
+}));
+const X = mk(/*#__PURE__*/React.createElement("path", {
+  d: "M18 6L6 18M6 6l12 12"
+}));
 
 /* ---------- program content ---------- */
 const DAILY = [{
@@ -500,48 +538,69 @@ const DAILY = [{
   icon: Sun,
   ph: "What did you do for the family?"
 }];
-const DAILY_RESP = ["Empty dishwasher every morning","Load dishwasher after dinner","Wipe kitchen counters daily","Sweep kitchen floor daily","Clean dining table at the end of the day","Check and toss expired leftovers","Put away folded laundry","Start one load of laundry","Feed Curry","Living room reset before dinner","Pick up shoes and backpacks daily","Hallway tidy-up","15-minute clutter patrol","Empty small trash cans","Wipe bathroom counters","Straighten couch pillows and blankets","Dust one room","Vacuum one high-traffic area","Organize one drawer or shelf","Take out recycling","Clean fingerprints from doors and light switches"];
-const WEEKLY_RESP_CATS = [
-  { title: "Kitchen", items: ["Clean microwave","Clean refrigerator shelves","Wipe cabinet fronts","Organize pantry shelf","Clean stovetop","Clean sinks and counters"] },
-  { title: "Bathrooms", items: ["Clean mirrors","Clean toilet","Clean shower/tub"] },
-  { title: "Floors & Dusting", items: ["Vacuum first floor","Vacuum second floor","Vacuum stairs","Dust bedrooms","Mop kitchen floor"] },
-  { title: "Outdoor", items: ["Sweep garage","Weed garden beds","Sweep patio"] },
-  { title: "Pool", items: ["Skim pool","Organize pool toys","Sweep pool deck"] },
-  { title: "Vehicles", items: ["Vacuum family vehicle","Remove trash from vehicle","Wash exterior of vehicle","Clean vehicle windows","Complete full interior detail"] },
-  { title: "Yard", items: ["Pull weeds"] },
-];
+const DAILY_RESP = ["Empty dishwasher every morning", "Load dishwasher after dinner", "Wipe kitchen counters daily", "Sweep kitchen floor daily", "Clean dining table at the end of the day", "Check and toss expired leftovers", "Put away folded laundry", "Start one load of laundry", "Feed Curry", "Living room reset before dinner", "Pick up shoes and backpacks daily", "Hallway tidy-up", "15-minute clutter patrol", "Empty small trash cans", "Wipe bathroom counters", "Straighten couch pillows and blankets", "Dust one room", "Vacuum one high-traffic area", "Organize one drawer or shelf", "Take out recycling", "Clean fingerprints from doors and light switches"];
+const WEEKLY_RESP_CATS = [{
+  title: "Kitchen",
+  items: ["Clean microwave", "Clean refrigerator shelves", "Wipe cabinet fronts", "Organize pantry shelf", "Clean stovetop", "Clean sinks and counters"]
+}, {
+  title: "Bathrooms",
+  items: ["Clean mirrors", "Clean toilet", "Clean shower/tub"]
+}, {
+  title: "Floors & Dusting",
+  items: ["Vacuum first floor", "Vacuum second floor", "Vacuum stairs", "Dust bedrooms", "Mop kitchen floor"]
+}, {
+  title: "Outdoor",
+  items: ["Sweep garage", "Weed garden beds", "Sweep patio"]
+}, {
+  title: "Pool",
+  items: ["Skim pool", "Organize pool toys", "Sweep pool deck"]
+}, {
+  title: "Vehicles",
+  items: ["Vacuum family vehicle", "Remove trash from vehicle", "Wash exterior of vehicle", "Clean vehicle windows", "Complete full interior detail"]
+}, {
+  title: "Yard",
+  items: ["Pull weeds"]
+}];
 const WEEKLY_RESP = WEEKLY_RESP_CATS.flatMap(c => c.items);
 const CATEGORIES = [{
   id: "life",
   title: "Summer Life Skills",
+  reflect: false,
   items: ["Change bed sheets independently", "Complete personal laundry start-to-finish", "Clean a bathroom properly", "Use basic household tools", "Replace batteries", "Make breakfast independently", "Cook pasta", "Follow a recipe independently", "Bake something for the family", "Make a family dinner", "Create a grocery list", "Shop on a budget", "Create a budget", "Set a savings goal"]
 }, {
   id: "books",
   title: "Books, Podcasts & Things I Learned",
+  reflect: false,
   items: ["Read a book and recommend it to the family", "Finish a book outside your usual genre", "Listen to a podcast and share 3 takeaways", "Research a historical event and explain why it matters", "Research a college, career, or major", "Find a math trick and teach it", "Learn 10 new vocabulary words", "Read an article and discuss it at dinner", "Research a current event and explain it", "Create a Top 10 Things I Learned This Summer list", "Read a biography and share lessons from it", "Compare a book and its movie adaptation", "Research a science topic and explain it", "Teach the family something new in 5 minutes", "Keep a summer learning journal for one week"]
 }, {
   id: "sports",
   title: "Sports Improvement",
+  reflect: false,
   items: ["Research and practice a stronger jump serve", "Learn proper blocking technique", "Analyze a volleyball player's technique", "Learn three new volleyball drills", "Create a volleyball workout plan", "Measure and improve vertical jump", "Learn or teach a new swim stroke", "Improve flip turns", "Analyze swim technique using video", "Research how elite swimmers train", "Track endurance improvement", "Learn stretching and recovery techniques"]
 }, {
   id: "school",
   title: "Learning & School Success",
+  reflect: false,
   items: ["Research effective note-taking methods", "Learn how to use a planner effectively", "Create a school organization system", "Learn a new study strategy", "Research how memory works", "Research how sleep affects learning", "Research how exercise affects academic performance", "Build a homework routine for next year", "Practice writing a professional email", "Research a club or activity to join", "Create academic goals for next year"]
 }, {
   id: "confidence",
   title: "Confidence & Leadership",
+  reflect: true,
   items: ["Practice introducing yourself confidently", "Research what makes a good leader", "Lead a family activity", "Plan and run a family game night", "Teach someone a skill", "Give a short presentation to the family", "Interview an adult about their career", "Write a list of things you're proud of", "Learn how to start a conversation with someone new", "Write a thank-you note", "Set a goal and share progress"]
 }, {
   id: "ai",
   title: "AI & Technology",
+  reflect: false,
   items: ["Complete GenAI 101", "Use AI to explain a math concept", "Compare AI answers to reliable sources", "Create a study guide with AI", "Create a custom GPT", "Learn about AI bias and limitations", "Use AI to help plan a project", "Teach the family something you learned about AI"]
 }, {
   id: "citizen",
   title: "Informed Citizen",
+  reflect: true,
   items: ["Explain a current news story to the family", "Research a conflict occurring somewhere in the world", "Compare how two news sources cover the same event", "Explain a scientific breakthrough", "Research a Supreme Court case", "Explain an economic issue affecting families", "Research an environmental issue", "Explain an international event", "Identify fact versus opinion in a news article", "Discuss how AI may affect a current issue"]
 }, {
   id: "independence",
   title: "Independence Challenges",
+  reflect: true,
   items: ["Make your own breakfast for a week", "Pack your own lunch for a week", "Manage your own laundry for two weeks", "Keep your bedroom clean for a week", "Create and follow a daily schedule", "Plan a family meal from start to finish", "Manage your screen-time goal for a week", "Complete responsibilities without reminders", "Help a sibling complete a goal"]
 }];
 const MILESTONES = [{
@@ -554,63 +613,154 @@ const BADGES = [{
   emoji: "📚",
   name: "Reader",
   crit: "Finish all 15 activities in\nBooks, Podcasts & Things I Learned",
-  prog: c => { const total = 15, n = c.catDoneCount("books"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 15,
+      n = c.catDoneCount("books");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "math",
   emoji: "🔢",
   name: "Math Master",
   crit: "Finish all 11 activities in\nLearning & School Success",
-  prog: c => { const total = 11, n = c.catDoneCount("school"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 11,
+      n = c.catDoneCount("school");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "volley",
   emoji: "🏐",
   name: "Volleyball",
   crit: "Finish all 6 volleyball activities in\nSports Improvement",
-  prog: c => { const total = 6, n = c.sumIdx("sports", [0,1,2,3,4,5]); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 6,
+      n = c.sumIdx("sports", [0, 1, 2, 3, 4, 5]);
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "swim",
   emoji: "🌊",
   name: "Swim",
   crit: "Finish all 6 swim activities in\nSports Improvement",
-  prog: c => { const total = 6, n = c.sumIdx("sports", [6,7,8,9,10,11]); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 6,
+      n = c.sumIdx("sports", [6, 7, 8, 9, 10, 11]);
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "ai",
   emoji: "🤖",
   name: "AI Explorer",
   crit: "Finish all 8 activities in\nAI & Technology",
-  prog: c => { const total = 8, n = c.catDoneCount("ai"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 8,
+      n = c.catDoneCount("ai");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "household",
   emoji: "🏠",
   name: "Household Hero",
   crit: "Finish all 14 activities in\nSummer Life Skills",
-  prog: c => { const total = 14, n = c.catDoneCount("life"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 14,
+      n = c.catDoneCount("life");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "independence",
   emoji: "🦅",
   name: "Independence",
   crit: "Finish all 9 activities in\nIndependence Challenges",
-  prog: c => { const total = 9, n = c.catDoneCount("independence"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 9,
+      n = c.catDoneCount("independence");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "leadership",
   emoji: "⭐",
   name: "Leadership",
   crit: "Finish all 11 activities in\nConfidence & Leadership",
-  prog: c => { const total = 11, n = c.catDoneCount("confidence"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 11,
+      n = c.catDoneCount("confidence");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "citizen",
   emoji: "📰",
   name: "Informed Citizen",
   crit: "Finish all 10 activities in\nInformed Citizen",
-  prog: c => { const total = 10, n = c.catDoneCount("citizen"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 10,
+      n = c.catDoneCount("citizen");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }, {
   id: "growth",
   emoji: "🌱",
   name: "Growth Mindset",
   crit: "Finish all 12 activities in\nSports Improvement",
-  prog: c => { const total = 12, n = c.catDoneCount("sports"); return { met: n >= total, pct: n / total, detail: `${n}/${total} done` }; }
+  prog: c => {
+    const total = 12,
+      n = c.catDoneCount("sports");
+    return {
+      met: n >= total,
+      pct: n / total,
+      detail: `${n}/${total} done`
+    };
+  }
 }];
-const BADGE_COLORS = { reader:"#3B82F6", math:"#8B5CF6", volley:"#F97316", swim:"#0EA5E9", ai:"#6366F1", household:"#22C55E", independence:"#F59E0B", leadership:"#EAB308", citizen:"#EF4444", growth:"#10B981" };
+const BADGE_COLORS = {
+  reader: "#3B82F6",
+  math: "#8B5CF6",
+  volley: "#F97316",
+  swim: "#0EA5E9",
+  ai: "#6366F1",
+  household: "#22C55E",
+  independence: "#F59E0B",
+  leadership: "#EAB308",
+  citizen: "#EF4444",
+  growth: "#10B981"
+};
 const CAPSTONE = ["What I learned", "What I improved", "My favorite book", "Something hard I accomplished", "A current event I followed", "A skill I want to keep developing", "Badges I earned"];
 const GOALS = [{
   id: "reading",
@@ -654,17 +804,52 @@ const AVATARS = [{
   color: "#2E7D6B"
 }];
 const TOTAL_ACTIVITIES = CATEGORIES.reduce((n, c) => n + c.items.length, 0);
+const LEVELS = [{
+  min: 0,
+  name: "Seedling",
+  icon: "🌱",
+  color: "#10B981"
+}, {
+  min: 15,
+  name: "Explorer",
+  icon: "🧭",
+  color: "#3B82F6"
+}, {
+  min: 40,
+  name: "Champion",
+  icon: "🏆",
+  color: "#F97316"
+}, {
+  min: 80,
+  name: "Legend",
+  icon: "🌟",
+  color: "#EAB308"
+}];
 const blankData = () => ({
   dailyLogs: {},
   completedActivities: {},
+  activityNotes: {},
   weeks: {},
+  weeklyReview: {},
   badges: {},
   capstone: {},
   counts: {
     books: 0
-  }
+  },
+  freezes: {}
 });
-const C = {
+
+/* ---------- palette (light/dark) ---------- */
+const palette = dark => dark ? {
+  bg: "#1A1510",
+  ink: "#F5EDD8",
+  soft: "#9B8E7E",
+  line: "#3A3025",
+  card: "#231E18",
+  terra: "#E06030",
+  pine: "#2E8A7A",
+  gold: "#D6A024"
+} : {
   bg: "#FBF3E2",
   ink: "#2C2118",
   soft: "#6E6051",
@@ -674,6 +859,438 @@ const C = {
   pine: "#1F5A52",
   gold: "#D6A024"
 };
+
+/* ===================== CONFETTI ===================== */
+function Confetti({
+  active,
+  onDone
+}) {
+  const canvasRef = useRef(null);
+  useEffect(() => {
+    if (!active) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext("2d");
+    const colors = ["#D6A024", "#C8552B", "#1F5A52", "#7B5EA7", "#3B82F6", "#10B981", "#F97316"];
+    const particles = Array.from({
+      length: 100
+    }, () => ({
+      x: Math.random() * canvas.width,
+      y: -20,
+      r: Math.random() * 5 + 3,
+      d: Math.random() * 3 + 2,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      tilt: Math.random() * 10 - 5,
+      tiltAngle: 0,
+      tiltSpeed: Math.random() * .1 + .05,
+      shape: Math.random() > .5 ? "rect" : "circle",
+      w: Math.random() * 8 + 4,
+      h: Math.random() * 5 + 3
+    }));
+    let frame = 0;
+    const anim = setInterval(() => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.tiltAngle += p.tiltSpeed;
+        p.y += p.d;
+        p.x += Math.sin(p.tiltAngle) * 2;
+        p.tilt = Math.sin(p.tiltAngle) * 12;
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = Math.max(0, 1 - frame / 150);
+        if (p.shape === "circle") {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.tiltAngle);
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+      });
+      ctx.globalAlpha = 1;
+      frame++;
+      if (frame > 180) {
+        clearInterval(anim);
+        onDone && onDone();
+      }
+    }, 16);
+    return () => clearInterval(anim);
+  }, [active]);
+  if (!active) return null;
+  return /*#__PURE__*/React.createElement("canvas", {
+    ref: canvasRef,
+    style: {
+      position: "fixed",
+      inset: 0,
+      pointerEvents: "none",
+      zIndex: 999
+    }
+  });
+}
+
+/* ===================== BADGE ICON ===================== */
+function BadgeIcon({
+  emoji,
+  earned,
+  color
+}) {
+  const cx = 45,
+    cy = 60;
+  const pts = [];
+  for (let i = 0; i < 16; i++) {
+    const angle = i * Math.PI / 8 - Math.PI / 2;
+    const r = i % 2 === 0 ? 37 : 29;
+    pts.push(`${(cx + r * Math.cos(angle)).toFixed(1)},${(cy + r * Math.sin(angle)).toFixed(1)}`);
+  }
+  const burst = pts.join(" ");
+  const c = earned ? color : "#C0B5A0";
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 90 106",
+    width: 82,
+    height: 94,
+    style: {
+      display: "block",
+      margin: "0 auto 2px"
+    }
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: 37,
+    y: 0,
+    width: 16,
+    height: 13,
+    rx: 4,
+    fill: c
+  }), /*#__PURE__*/React.createElement("polygon", {
+    points: "34,11 56,11 53,20 37,20",
+    fill: c,
+    opacity: 0.75
+  }), earned && /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: 41,
+    fill: c,
+    opacity: 0.13
+  }), /*#__PURE__*/React.createElement("polygon", {
+    points: burst,
+    fill: c,
+    opacity: earned ? 1 : 0.4
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: 26,
+    fill: "#fff",
+    opacity: earned ? 1 : 0.75
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: 24,
+    fill: earned ? "#FFFDF4" : "#F2EDE4"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: cx,
+    cy: cy,
+    r: 22,
+    fill: "none",
+    stroke: c,
+    strokeWidth: 1.5,
+    opacity: 0.45,
+    strokeDasharray: "3 2"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: cx,
+    y: cy + 9,
+    textAnchor: "middle",
+    fontSize: 22,
+    fontFamily: "Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif",
+    style: {
+      opacity: earned ? 1 : 0.55
+    }
+  }, emoji), earned && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("text", {
+    x: 7,
+    y: 44,
+    fontSize: 10,
+    fill: c,
+    opacity: 0.85
+  }, "★"), /*#__PURE__*/React.createElement("text", {
+    x: 74,
+    y: 44,
+    fontSize: 10,
+    fill: c,
+    opacity: 0.85
+  }, "★"), /*#__PURE__*/React.createElement("text", {
+    x: 4,
+    y: 82,
+    fontSize: 8,
+    fill: c,
+    opacity: 0.65
+  }, "✦"), /*#__PURE__*/React.createElement("text", {
+    x: 76,
+    y: 82,
+    fontSize: 8,
+    fill: c,
+    opacity: 0.65
+  }, "✦")));
+}
+
+/* ===================== MODALS ===================== */
+function Modal({
+  children,
+  onClose,
+  C
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    onClick: onClose,
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,.55)",
+      zIndex: 50,
+      display: "grid",
+      placeItems: "center",
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: C.card,
+      borderRadius: 20,
+      padding: 24,
+      width: "100%",
+      maxWidth: 400,
+      boxShadow: "0 20px 60px rgba(0,0,0,.3)"
+    }
+  }, children));
+}
+function NoteModal({
+  item,
+  catTitle,
+  existing,
+  requireNote,
+  onSave,
+  onCancel,
+  C
+}) {
+  const [note, setNote] = useState(existing || "");
+  const canSkip = !requireNote;
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onCancel,
+    C: C
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.soft,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: ".05em",
+      marginBottom: 8
+    }
+  }, catTitle), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 17,
+      fontWeight: 700,
+      color: C.ink,
+      marginBottom: 16,
+      lineHeight: 1.3
+    }
+  }, item), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      color: C.soft,
+      fontWeight: 600
+    }
+  }, requireNote ? "Describe what you did (required)" : "Add a note (optional)"), /*#__PURE__*/React.createElement("textarea", {
+    value: note,
+    onChange: e => setNote(e.target.value),
+    rows: 3,
+    placeholder: "What did you do? What did you learn?",
+    style: {
+      width: "100%",
+      marginTop: 6,
+      padding: "10px 12px",
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: C.bg,
+      fontSize: 15,
+      fontFamily: "inherit",
+      color: C.ink,
+      resize: "none",
+      outline: "none",
+      boxSizing: "border-box"
+    },
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      marginTop: 16
+    }
+  }, canSkip && /*#__PURE__*/React.createElement("button", {
+    onClick: () => onSave(""),
+    style: {
+      flex: 1,
+      padding: 11,
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: "transparent",
+      color: C.soft,
+      fontFamily: "inherit",
+      fontSize: 14,
+      cursor: "pointer"
+    }
+  }, "Skip"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => requireNote && !note.trim() || onSave(note.trim()),
+    disabled: requireNote && !note.trim(),
+    style: {
+      flex: 2,
+      padding: 11,
+      borderRadius: 12,
+      border: "none",
+      background: requireNote && !note.trim() ? C.line : C.pine,
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 700,
+      cursor: requireNote && !note.trim() ? "default" : "pointer"
+    }
+  }, "✓ Mark Complete")));
+}
+function PINModal({
+  mode,
+  onSubmit,
+  onCancel,
+  C
+}) {
+  const [pin, setPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [err, setErr] = useState("");
+  const handle = () => {
+    if (mode === "setup") {
+      if (pin.length < 4) {
+        setErr("Use at least 4 characters.");
+        return;
+      }
+      if (pin !== confirm) {
+        setErr("PINs don't match.");
+        return;
+      }
+      onSubmit(pin);
+    } else {
+      onSubmit(pin);
+    }
+  };
+  return /*#__PURE__*/React.createElement(Modal, {
+    onClose: onCancel,
+    C: C
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(Key, {
+    size: 32,
+    style: {
+      color: C.gold,
+      margin: "0 auto 8px",
+      display: "block"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 700,
+      color: C.ink
+    }
+  }, mode === "setup" ? "Set Parent PIN" : "Parent PIN Required"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: C.soft,
+      marginTop: 4
+    }
+  }, mode === "setup" ? "Create a PIN to protect badge granting." : "Enter your PIN to grant this badge.")), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: pin,
+    onChange: e => setPin(e.target.value),
+    placeholder: "PIN",
+    maxLength: 20,
+    style: {
+      width: "100%",
+      padding: "12px 14px",
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: C.bg,
+      fontSize: 18,
+      fontFamily: "inherit",
+      color: C.ink,
+      boxSizing: "border-box",
+      outline: "none",
+      textAlign: "center",
+      letterSpacing: 4
+    },
+    autoFocus: true
+  }), mode === "setup" && /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    value: confirm,
+    onChange: e => setConfirm(e.target.value),
+    placeholder: "Confirm PIN",
+    maxLength: 20,
+    style: {
+      width: "100%",
+      marginTop: 10,
+      padding: "12px 14px",
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: C.bg,
+      fontSize: 18,
+      fontFamily: "inherit",
+      color: C.ink,
+      boxSizing: "border-box",
+      outline: "none",
+      textAlign: "center",
+      letterSpacing: 4
+    }
+  }), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: C.terra,
+      fontSize: 13,
+      marginTop: 6,
+      textAlign: "center"
+    }
+  }, err), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 10,
+      marginTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onCancel,
+    style: {
+      flex: 1,
+      padding: 11,
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: "transparent",
+      color: C.soft,
+      fontFamily: "inherit",
+      cursor: "pointer"
+    }
+  }, "Cancel"), /*#__PURE__*/React.createElement("button", {
+    onClick: handle,
+    style: {
+      flex: 2,
+      padding: 11,
+      borderRadius: 12,
+      border: "none",
+      background: C.terra,
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 15,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, mode === "setup" ? "Set PIN" : "Confirm")));
+}
+
+/* ===================== MAIN APP ===================== */
 function App() {
   const [profiles, setProfiles] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -687,6 +1304,23 @@ function App() {
   const [openCat, setOpenCat] = useState("life");
   const [reportPeriod, setReportPeriod] = useState("week");
   const [copied, setCopied] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [confetti, setConfetti] = useState(false);
+  const [noteModal, setNoteModal] = useState(null); // {key,item,catTitle,existing,requireNote}
+  const [pinModal, setPinModal] = useState(null); // {mode:"setup"|"verify", badgeId}
+  const [parentPIN, setParentPIN] = useState(null);
+  const [pinErr, setPinErr] = useState("");
+  const [suggestedActivity, setSuggestedActivity] = useState(null);
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const stored = localStorage.getItem("family:darkMode");
+    if (stored !== null) setDarkMode(stored === "1");else setDarkMode(mq.matches);
+    const h = e => {
+      if (localStorage.getItem("family:darkMode") === null) setDarkMode(e.matches);
+    };
+    mq.addEventListener("change", h);
+    return () => mq.removeEventListener("change", h);
+  }, []);
   useEffect(() => {
     (async () => {
       const p = await store.get("family:profiles");
@@ -700,9 +1334,12 @@ function App() {
           ...JSON.parse(d)
         } : blankData());
       }
+      const pin = await store.get("family:pin");
+      setParentPIN(pin);
       setLoaded(true);
     })();
   }, []);
+  const C = palette(darkMode);
   const switchProfile = async id => {
     setActiveId(id);
     setTab("today");
@@ -744,210 +1381,95 @@ function App() {
     weeklyResps: [],
     goals: {}
   };
+
+  /* --- derived --- */
   const done = (cat, i) => !!data.completedActivities[cat + ":" + i];
   const sumIdx = (cat, arr) => arr.filter(i => done(cat, i)).length;
   const catDoneCount = cat => {
     const c = CATEGORIES.find(x => x.id === cat);
     return c.items.filter((_, i) => done(cat, i)).length;
   };
-  const books = data.counts && data.counts.books || 0;
-  const weeksMath = useMemo(() => {
-    const m = {};
-    Object.keys(data.dailyLogs).forEach(k => {
-      if (data.dailyLogs[k].math) {
-        const wk = ymd(mondayOf(fromYmd(k)));
-        m[wk] = (m[wk] || 0) + 1;
-      }
-    });
-    return Object.values(m).filter(n => n >= 3).length;
-  }, [data.dailyLogs]);
-  const weeksWithResp = Object.values(data.weeks).filter(w => w.dailyResp).length;
   const ctx = {
     done,
     sumIdx,
-    catDoneCount,
-    books,
-    weeksMath,
-    weeksWithResp
+    catDoneCount
   };
   const badgeEarned = b => b.prog(ctx).met || !!(data.badges[b.id] && data.badges[b.id].manual);
   const allFourLog = log => !!log && DAILY.every(x => log[x.id]);
+  const dayComplete = ds => allFourLog(data.dailyLogs[ds]) || !!(data.freezes && data.freezes[ds]);
   const streak = useMemo(() => {
     let n = 0;
     const d = new Date();
     for (;;) {
-      if (allFourLog(data.dailyLogs[ymd(d)])) {
+      if (dayComplete(ymd(d))) {
         n++;
         d.setDate(d.getDate() - 1);
       } else break;
     }
     return n;
-  }, [data.dailyLogs]);
+  }, [data.dailyLogs, data.freezes]);
   const longestStreak = useMemo(() => {
-    const days = Object.keys(data.dailyLogs).filter(k => allFourLog(data.dailyLogs[k])).sort();
+    const allDays = [...new Set([...Object.keys(data.dailyLogs), ...Object.keys(data.freezes || {})])].filter(k => dayComplete(k)).sort();
     let best = 0,
       run = 0,
       prev = null;
-    days.forEach(k => {
+    allDays.forEach(k => {
       const cur = fromYmd(k);
       run = prev && cur - prev === 864e5 ? run + 1 : 1;
       best = Math.max(best, run);
       prev = cur;
     });
     return best;
-  }, [data.dailyLogs]);
+  }, [data.dailyLogs, data.freezes]);
   const activitiesDone = Object.values(data.completedActivities).filter(Boolean).length;
   const badgesEarned = BADGES.filter(badgeEarned).length;
   const catDone = cat => cat.items.filter((_, i) => done(cat.id, i)).length;
-  const s = {
-    shell: {
-      minHeight: "100%",
-      background: C.bg,
-      color: C.ink,
-      fontFamily: "'Bricolage Grotesque', -apple-system, system-ui, sans-serif"
-    },
-    wrap: {
-      maxWidth: 760,
-      margin: "0 auto",
-      padding: "0 16px 110px"
-    },
-    h1: {
-      fontFamily: "'Fraunces', Georgia, serif",
-      fontWeight: 600,
-      letterSpacing: "-0.02em"
-    },
-    card: {
-      background: C.card,
-      border: `1px solid ${C.line}`,
-      borderRadius: 18
+  const level = LEVELS.slice().reverse().find(l => activitiesDone >= l.min) || LEVELS[0];
+  const nextLevel = LEVELS[LEVELS.indexOf(level) + 1];
+  const daysLeft = daysUntilSept();
+  const countdownColor = daysLeft > 30 ? C.pine : daysLeft > 14 ? C.gold : C.terra;
+
+  /* freeze logic */
+  const freezesThisWeek = useMemo(() => {
+    const mon = mondayOf(new Date());
+    const fr = data.freezes || {};
+    return Array.from({
+      length: 7
+    }, (_, i) => {
+      const d = new Date(mon);
+      d.setDate(mon.getDate() + i);
+      return ymd(d);
+    }).filter(d => fr[d]).length;
+  }, [data.freezes]);
+  const canFreeze = !dayComplete(todayStr()) && freezesThisWeek < 1;
+
+  /* confetti on new badge */
+  const prevBadgesEarned = usePrevious(badgesEarned);
+  useEffect(() => {
+    if (loaded && prevBadgesEarned !== undefined && badgesEarned > prevBadgesEarned) setConfetti(true);
+  }, [badgesEarned]);
+
+  /* suggest activity */
+  const getRandomUndone = useCallback(() => {
+    const pool = [];
+    CATEGORIES.forEach(cat => cat.items.forEach((item, i) => {
+      if (!done(cat.id, i)) pool.push({
+        cat,
+        i,
+        item
+      });
+    }));
+    if (!pool.length) {
+      setSuggestedActivity(null);
+      return;
     }
-  };
-  if (!loaded) return /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...s.shell,
-      display: "grid",
-      placeItems: "center",
-      height: 320
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: C.soft
-    }
-  }, "Loading\u2026"));
-  if (!profiles.length || adding) {
-    return /*#__PURE__*/React.createElement("div", {
-      style: s.shell
-    }, /*#__PURE__*/React.createElement(Fonts, null), /*#__PURE__*/React.createElement("div", {
-      style: {
-        ...s.wrap,
-        paddingTop: 48,
-        maxWidth: 460
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        textAlign: "center",
-        marginBottom: 28
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 46
-      }
-    }, "\uD83C\uDF1E"), /*#__PURE__*/React.createElement("h1", {
-      style: {
-        ...s.h1,
-        fontSize: 30,
-        margin: "8px 0 4px"
-      }
-    }, "Summer Growth"), /*#__PURE__*/React.createElement("p", {
-      style: {
-        color: C.soft,
-        margin: 0
-      }
-    }, "Whose iPad is this? Add yourself to start.")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        ...s.card,
-        padding: 22
-      }
-    }, /*#__PURE__*/React.createElement("label", {
-      style: {
-        fontSize: 13,
-        color: C.soft,
-        fontWeight: 600
-      }
-    }, "Name"), /*#__PURE__*/React.createElement("input", {
-      value: newName,
-      onChange: e => setNewName(e.target.value),
-      placeholder: "e.g. Jordan",
-      onKeyDown: e => e.key === "Enter" && addProfile(),
-      style: {
-        width: "100%",
-        marginTop: 6,
-        marginBottom: 18,
-        padding: "12px 14px",
-        borderRadius: 12,
-        border: `1px solid ${C.line}`,
-        background: "#fff",
-        fontSize: 16,
-        fontFamily: "inherit",
-        boxSizing: "border-box"
-      }
-    }), /*#__PURE__*/React.createElement("label", {
-      style: {
-        fontSize: 13,
-        color: C.soft,
-        fontWeight: 600
-      }
-    }, "Pick a badge"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: 8,
-        marginTop: 8,
-        marginBottom: 22
-      }
-    }, AVATARS.map((a, i) => /*#__PURE__*/React.createElement("button", {
-      key: i,
-      onClick: () => setNewAvatar(i),
-      style: {
-        width: 46,
-        height: 46,
-        borderRadius: 14,
-        fontSize: 22,
-        cursor: "pointer",
-        background: newAvatar === i ? a.color : "#fff",
-        border: `2px solid ${newAvatar === i ? a.color : C.line}`,
-        transition: "all .15s"
-      }
-    }, a.emoji))), /*#__PURE__*/React.createElement("button", {
-      onClick: addProfile,
-      disabled: !newName.trim(),
-      style: {
-        width: "100%",
-        padding: 13,
-        borderRadius: 12,
-        border: "none",
-        cursor: newName.trim() ? "pointer" : "default",
-        background: newName.trim() ? C.terra : C.line,
-        color: "#fff",
-        fontSize: 16,
-        fontWeight: 600,
-        fontFamily: "inherit"
-      }
-    }, "Start my summer"), profiles.length > 0 && /*#__PURE__*/React.createElement("button", {
-      onClick: () => setAdding(false),
-      style: {
-        width: "100%",
-        marginTop: 10,
-        padding: 8,
-        background: "none",
-        border: "none",
-        color: C.soft,
-        cursor: "pointer",
-        fontFamily: "inherit",
-        fontSize: 14
-      }
-    }, "Cancel"))));
-  }
+    setSuggestedActivity(pool[Math.floor(Math.random() * pool.length)]);
+  }, [data.completedActivities]);
+  useEffect(() => {
+    if (tab === "activities" && !suggestedActivity) getRandomUndone();
+  }, [tab]);
+
+  /* mutations */
   const toggleDaily = id => update(d => {
     const log = d.dailyLogs[selDate] || {};
     log[id] = !log[id];
@@ -961,20 +1483,21 @@ function App() {
     d.dailyLogs[selDate] = log;
     return d;
   });
-  const toggleActivity = key => update(d => {
-    if (d.completedActivities[key]) delete d.completedActivities[key];else d.completedActivities[key] = todayStr();
-    return d;
-  });
-  const grantBadge = id => update(d => {
-    d.badges[id] = d.badges[id] || {};
-    d.badges[id].manual = !d.badges[id].manual;
-    return d;
-  });
-  const setBooks = delta => update(d => {
-    d.counts = d.counts || {
-      books: 0
+  const completeActivity = (key, note) => update(d => {
+    d.completedActivities[key] = todayStr();
+    if (note) d.activityNotes = {
+      ...d.activityNotes,
+      [key]: note
     };
-    d.counts.books = Math.max(0, (d.counts.books || 0) + delta);
+    return d;
+  });
+  const uncompleteActivity = key => update(d => {
+    delete d.completedActivities[key];
+    return d;
+  });
+  const useFreeze = () => update(d => {
+    d.freezes = d.freezes || {};
+    d.freezes[todayStr()] = true;
     return d;
   });
   const setDailyResp = v => update(d => {
@@ -993,9 +1516,9 @@ function App() {
       weeklyResps: [],
       goals: {}
     };
-    const set = new Set(w.weeklyResps);
-    set.has(v) ? set.delete(v) : set.add(v);
-    w.weeklyResps = [...set];
+    const s = new Set(w.weeklyResps);
+    s.has(v) ? s.delete(v) : s.add(v);
+    w.weeklyResps = [...s];
     d.weeks[weekKey] = w;
     return d;
   });
@@ -1016,13 +1539,77 @@ function App() {
     d.capstone[i] = v;
     return d;
   });
-  const days7 = Array.from({
-    length: 7
-  }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - (6 - i));
+  const setWeeklyReview = v => update(d => {
+    d.weeklyReview = {
+      ...d.weeklyReview,
+      [weekKey]: v
+    };
     return d;
   });
+  const toggleDarkMode = () => {
+    setDarkMode(p => {
+      const n = !p;
+      localStorage.setItem("family:darkMode", n ? "1" : "0");
+      return n;
+    });
+  };
+  const handleActivityTap = (cat, i) => {
+    const key = cat.id + ":" + i;
+    if (done(cat.id, i)) {
+      uncompleteActivity(key);
+      return;
+    }
+    const existing = data.activityNotes && data.activityNotes[key];
+    setNoteModal({
+      key,
+      item: cat.items[i],
+      catTitle: cat.title,
+      existing: existing || "",
+      requireNote: cat.reflect
+    });
+  };
+  const handleGrantBadge = id => {
+    const isEarned = BADGES.find(b => b.id === id)?.prog(ctx)?.met;
+    if (isEarned) return;
+    if (!parentPIN) {
+      setPinModal({
+        mode: "setup",
+        badgeId: id
+      });
+      return;
+    }
+    setPinModal({
+      mode: "verify",
+      badgeId: id
+    });
+  };
+  const handlePINSubmit = pin => {
+    if (pinModal.mode === "setup") {
+      store.set("family:pin", pin);
+      setParentPIN(pin);
+      update(d => {
+        d.badges[pinModal.badgeId] = d.badges[pinModal.badgeId] || {};
+        d.badges[pinModal.badgeId].manual = true;
+        return d;
+      });
+      setPinModal(null);
+    } else {
+      if (pin !== parentPIN) {
+        setPinErr("Wrong PIN.");
+        setTimeout(() => setPinErr(""), 2000);
+        return;
+      }
+      const cur = !!(data.badges[pinModal.badgeId] && data.badges[pinModal.badgeId].manual);
+      update(d => {
+        d.badges[pinModal.badgeId] = d.badges[pinModal.badgeId] || {};
+        d.badges[pinModal.badgeId].manual = !cur;
+        return d;
+      });
+      setPinModal(null);
+    }
+  };
+
+  /* report */
   const periodTitle = p => p === "day" ? `Day Report · ${prettyDate(fromYmd(selDate))}` : p === "week" ? `Week of ${prettyDate(mondayOf(fromYmd(selDate)))}` : "Summer Report";
   function buildSections(p) {
     const secs = [];
@@ -1035,9 +1622,16 @@ function App() {
           return `${log[x.id] ? "✓" : "○"} ${x.label}${note}`;
         })
       });
+      if (data.freezes && data.freezes[selDate]) secs.push({
+        h: "Streak freeze used",
+        rows: ["🧊 Freeze used this day"]
+      });
       const acts = [];
       CATEGORIES.forEach(cat => cat.items.forEach((it, i) => {
-        if (data.completedActivities[cat.id + ":" + i] === selDate) acts.push(`✓ ${it}  ·  ${cat.title}`);
+        if (data.completedActivities[cat.id + ":" + i] === selDate) {
+          const note = data.activityNotes && data.activityNotes[cat.id + ":" + i];
+          acts.push(`✓ ${it}${note ? " — " + note : ""}  ·  ${cat.title}`);
+        }
       }));
       secs.push({
         h: "Activities completed today",
@@ -1057,14 +1651,16 @@ function App() {
       for (let i = 0; i < 7; i++) {
         const d = new Date(mon);
         d.setDate(mon.getDate() + i);
-        const log = data.dailyLogs[ymd(d)] || {};
+        const ds = ymd(d);
+        const log = data.dailyLogs[ds] || {};
+        const frozen = data.freezes && data.freezes[ds];
         const c = DAILY.filter(x => log[x.id]).length;
-        if (c === 4) all++;
+        if (c === 4 || frozen) all++;
         rows.push(`${d.toLocaleDateString(undefined, {
           weekday: "short"
-        })} ${d.getMonth() + 1}/${d.getDate()} — ${c}/4`);
+        })} ${d.getMonth() + 1}/${d.getDate()} — ${frozen ? "🧊 Freeze" : c + "/4"}`);
       }
-      rows.push(`Days all four complete: ${all}/7`);
+      rows.push(`Days complete: ${all}/7`);
       secs.push({
         h: "Daily completion",
         rows
@@ -1094,35 +1690,38 @@ function App() {
         h: "Goals",
         rows: GOALS.map(g => `${g.label}: ${w.goals && w.goals[g.id] || "—"}`)
       });
+      if (data.weeklyReview && data.weeklyReview[wk]) secs.push({
+        h: "Weekly reflection",
+        rows: [data.weeklyReview[wk]]
+      });
       const acts = [];
       CATEGORIES.forEach(cat => cat.items.forEach((it, i) => {
         const v = data.completedActivities[cat.id + ":" + i];
-        if (typeof v === "string" && v >= wk && v <= we) acts.push(`✓ ${it}  ·  ${cat.title}`);
+        const note = data.activityNotes && data.activityNotes[cat.id + ":" + i];
+        if (typeof v === "string" && v >= wk && v <= we) acts.push(`✓ ${it}${note ? " — " + note : ""}  ·  ${cat.title}`);
       }));
       secs.push({
         h: "Activities completed this week",
         rows: acts.length ? acts : ["— none logged —"]
       });
-      const e = BADGES.filter(badgeEarned);
       secs.push({
         h: "Badges earned to date",
-        rows: e.length ? e.map(b => `${b.emoji} ${b.name}`) : ["— none yet —"]
+        rows: BADGES.filter(badgeEarned).length ? BADGES.filter(badgeEarned).map(b => `${b.emoji} ${b.name}`) : ["— none yet —"]
       });
     } else {
       const keys = Object.keys(data.dailyLogs);
-      const af = keys.filter(k => allFourLog(data.dailyLogs[k]));
+      const af = keys.filter(k => dayComplete(k));
       secs.push({
         h: "Summer snapshot",
-        rows: [`Days tracked: ${keys.length}`, `Days all four complete: ${af.length}`, `Current streak: ${streak} days`, `Longest streak: ${longestStreak} days`, `Activities completed: ${activitiesDone}/${TOTAL_ACTIVITIES}`, `Badges earned: ${badgesEarned}/${BADGES.length}`, `Books finished: ${books}`]
+        rows: [`Days tracked: ${keys.length}`, `Days complete: ${af.length}`, `Current streak: ${streak} days`, `Longest streak: ${longestStreak} days`, `Activities completed: ${activitiesDone}/${TOTAL_ACTIVITIES}`, `Badges earned: ${badgesEarned}/${BADGES.length}`, `Level: ${level.icon} ${level.name}`, `Days left in summer: ${daysLeft}`]
       });
       secs.push({
         h: "Summer must-dos",
         rows: MILESTONES.map(m => `${data.completedActivities[m.id] ? "✓" : "○"} ${m.label}`)
       });
-      const e = BADGES.filter(badgeEarned);
       secs.push({
         h: "Badges earned",
-        rows: e.length ? e.map(b => `${b.emoji} ${b.name} — ${b.crit}`) : ["— none yet —"]
+        rows: BADGES.filter(badgeEarned).map(b => `${b.emoji} ${b.name} — ${b.crit.replace("\n", " ")}`) || ["— none yet —"]
       });
       const cap = CAPSTONE.map((q, i) => data.capstone[i] && data.capstone[i].trim() ? `${q}: ${data.capstone[i]}` : null).filter(Boolean);
       secs.push({
@@ -1133,8 +1732,8 @@ function App() {
     return secs;
   }
   const reportToText = p => {
-    const head = `${active.name} — Summer Growth\n${periodTitle(p)}\nGenerated ${new Date().toLocaleDateString()}\n`;
-    return head + "\n" + buildSections(p).map(sec => `${sec.h.toUpperCase()}\n` + sec.rows.map(r => "  " + r).join("\n")).join("\n\n") + "\n";
+    const head = `${active?.name} — Summer Growth\n${periodTitle(p)}\nGenerated ${new Date().toLocaleDateString()}\n`;
+    return head + "\n" + buildSections(p).map(s => s.h.toUpperCase() + "\n" + s.rows.map(r => "  " + r).join("\n")).join("\n\n") + "\n";
   };
   const doPrint = () => {
     try {
@@ -1144,8 +1743,7 @@ function App() {
   const doCopy = () => {
     const ta = document.createElement("textarea");
     ta.value = reportToText(reportPeriod);
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
+    ta.style.cssText = "position:fixed;opacity:0";
     document.body.appendChild(ta);
     ta.focus();
     ta.select();
@@ -1156,10 +1754,192 @@ function App() {
     } catch (_) {}
     document.body.removeChild(ta);
   };
+  const doSMS = () => {
+    const text = reportToText(reportPeriod);
+    window.location.href = "sms:&body=" + encodeURIComponent(text.slice(0, 1500));
+  };
+  const days7 = Array.from({
+    length: 7
+  }, (_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+  const s = {
+    shell: {
+      minHeight: "100%",
+      background: C.bg,
+      color: C.ink,
+      fontFamily: "'Bricolage Grotesque',-apple-system,system-ui,sans-serif"
+    },
+    wrap: {
+      maxWidth: 760,
+      margin: "0 auto",
+      padding: "0 16px 110px"
+    },
+    h1: {
+      fontFamily: "'Fraunces',Georgia,serif",
+      fontWeight: 600,
+      letterSpacing: "-0.02em"
+    },
+    card: {
+      background: C.card,
+      border: `1px solid ${C.line}`,
+      borderRadius: 18
+    }
+  };
+  if (!loaded) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.shell,
+      display: "grid",
+      placeItems: "center",
+      height: 320
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.soft
+    }
+  }, "Loading…"));
+
+  /* onboarding */
+  if (!profiles.length || adding) return /*#__PURE__*/React.createElement("div", {
+    style: s.shell
+  }, /*#__PURE__*/React.createElement(Fonts, null), /*#__PURE__*/React.createElement(Styles, {
+    C: C
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.wrap,
+      paddingTop: 48,
+      maxWidth: 460
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 46
+    }
+  }, "🌞"), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      ...s.h1,
+      fontSize: 30,
+      margin: "8px 0 4px",
+      color: C.ink
+    }
+  }, "Summer Growth"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: C.soft,
+      margin: 0
+    }
+  }, "Whose iPad is this? Add yourself to start.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      padding: 22
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      color: C.soft,
+      fontWeight: 600
+    }
+  }, "Name"), /*#__PURE__*/React.createElement("input", {
+    value: newName,
+    onChange: e => setNewName(e.target.value),
+    placeholder: "e.g. Jordan",
+    onKeyDown: e => e.key === "Enter" && addProfile(),
+    style: {
+      width: "100%",
+      marginTop: 6,
+      marginBottom: 18,
+      padding: "12px 14px",
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: C.bg,
+      fontSize: 16,
+      fontFamily: "inherit",
+      color: C.ink,
+      boxSizing: "border-box",
+      outline: "none"
+    }
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      color: C.soft,
+      fontWeight: 600
+    }
+  }, "Pick a badge"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8,
+      marginTop: 8,
+      marginBottom: 22
+    }
+  }, AVATARS.map((a, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setNewAvatar(i),
+    style: {
+      width: 46,
+      height: 46,
+      borderRadius: 14,
+      fontSize: 22,
+      cursor: "pointer",
+      background: newAvatar === i ? a.color : C.card,
+      border: `2px solid ${newAvatar === i ? a.color : C.line}`
+    }
+  }, a.emoji))), /*#__PURE__*/React.createElement("button", {
+    onClick: addProfile,
+    disabled: !newName.trim(),
+    style: {
+      width: "100%",
+      padding: 13,
+      borderRadius: 12,
+      border: "none",
+      cursor: newName.trim() ? "pointer" : "default",
+      background: newName.trim() ? C.terra : C.line,
+      color: "#fff",
+      fontSize: 16,
+      fontWeight: 600,
+      fontFamily: "inherit"
+    }
+  }, "Start my summer"), profiles.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(false),
+    style: {
+      width: "100%",
+      marginTop: 10,
+      padding: 8,
+      background: "none",
+      border: "none",
+      color: C.soft,
+      cursor: "pointer",
+      fontFamily: "inherit",
+      fontSize: 14
+    }
+  }, "Cancel"))));
   return /*#__PURE__*/React.createElement("div", {
     id: "app-root",
     style: s.shell
-  }, /*#__PURE__*/React.createElement(Fonts, null), /*#__PURE__*/React.createElement(Styles, null), /*#__PURE__*/React.createElement("header", {
+  }, /*#__PURE__*/React.createElement(Fonts, null), /*#__PURE__*/React.createElement(Styles, {
+    C: C
+  }), /*#__PURE__*/React.createElement(Confetti, {
+    active: confetti,
+    onDone: () => setConfetti(false)
+  }), noteModal && /*#__PURE__*/React.createElement(NoteModal, {
+    ...noteModal,
+    onSave: note => {
+      completeActivity(noteModal.key, note);
+      setNoteModal(null);
+    },
+    onCancel: () => setNoteModal(null),
+    C: C
+  }), pinModal && /*#__PURE__*/React.createElement(PINModal, {
+    mode: pinModal.mode,
+    onSubmit: handlePINSubmit,
+    onCancel: () => setPinModal(null),
+    C: C
+  }), /*#__PURE__*/React.createElement("header", {
     className: "app-header",
     style: {
       background: C.pine,
@@ -1187,11 +1967,45 @@ function App() {
   }, "Leftwich Family"), /*#__PURE__*/React.createElement("h1", {
     style: {
       ...s.h1,
-      fontSize: 25,
+      fontSize: 24,
       margin: "2px 0 0",
       color: "#FBF3E2"
     }
-  }, "Summer Growth Program")), /*#__PURE__*/React.createElement("div", {
+  }, "Summer Growth"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: level.color,
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: 700,
+      padding: "2px 8px",
+      borderRadius: 999
+    }
+  }, level.icon, " ", level.name), nextLevel && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: "rgba(251,243,226,.65)",
+      fontSize: 11
+    }
+  }, activitiesDone, "/", nextLevel.min, " to ", nextLevel.name))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "flex-end",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "right"
     }
@@ -1199,29 +2013,56 @@ function App() {
     style: {
       display: "flex",
       alignItems: "center",
-      gap: 6,
+      gap: 5,
       justifyContent: "flex-end"
     }
   }, /*#__PURE__*/React.createElement(Flame, {
-    size: 18,
+    size: 17,
     style: {
       color: C.gold
     }
   }), /*#__PURE__*/React.createElement("span", {
     style: {
-      fontSize: 22,
+      fontSize: 20,
       fontWeight: 700
     }
   }, streak)), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 11,
+      fontSize: 10,
       opacity: .7
     }
-  }, "day streak"))), /*#__PURE__*/React.createElement("div", {
+  }, "day streak")), /*#__PURE__*/React.createElement("button", {
+    onClick: toggleDarkMode,
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: "50%",
+      border: "1.5px solid rgba(251,243,226,.35)",
+      background: "transparent",
+      color: "#FBF3E2",
+      display: "grid",
+      placeItems: "center",
+      cursor: "pointer"
+    }
+  }, darkMode ? /*#__PURE__*/React.createElement(Sun, {
+    size: 16
+  }) : /*#__PURE__*/React.createElement(Moon, {
+    size: 16
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: countdownColor,
+      color: "#fff",
+      fontSize: 11,
+      fontWeight: 700,
+      padding: "3px 10px",
+      borderRadius: 999,
+      whiteSpace: "nowrap"
+    }
+  }, daysLeft, "d until school"))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
-      marginTop: 16,
+      marginTop: 14,
       flexWrap: "wrap"
     }
   }, profiles.map(p => {
@@ -1354,20 +2195,20 @@ function App() {
   }, days7.map(d => {
     const ds = ymd(d);
     const on = ds === selDate;
-    const log = data.dailyLogs[ds] || {};
-    const cnt = DAILY.filter(x => log[x.id]).length;
-    const full = cnt === 4;
+    const cnt = DAILY.filter(x => (data.dailyLogs[ds] || {})[x.id]).length;
+    const full = dayComplete(ds);
+    const frozen = data.freezes && data.freezes[ds];
     return /*#__PURE__*/React.createElement("button", {
       key: ds,
       onClick: () => setSelDate(ds),
       style: {
         flex: "1 0 auto",
-        minWidth: 58,
+        minWidth: 56,
         padding: "9px 4px",
         borderRadius: 13,
         cursor: "pointer",
         border: `1.5px solid ${on ? C.terra : C.line}`,
-        background: on ? "#fff" : C.card,
+        background: on ? "#fff8" : C.card,
         fontFamily: "inherit",
         textAlign: "center"
       }
@@ -1382,7 +2223,8 @@ function App() {
     })), /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 17,
-        fontWeight: 700
+        fontWeight: 700,
+        color: C.ink
       }
     }, d.getDate()), /*#__PURE__*/React.createElement("div", {
       style: {
@@ -1390,10 +2232,12 @@ function App() {
         width: 6,
         borderRadius: "50%",
         margin: "3px auto 0",
-        background: full ? C.pine : cnt > 0 ? C.gold : C.line
+        background: full ? frozen ? "#60a5fa" : C.pine : cnt > 0 ? C.gold : C.line
       }
     }));
-  })), /*#__PURE__*/React.createElement(SectionTitle, null, "Before screens \u2014 ", selDate === todayStr() ? "today" : prettyDate(fromYmd(selDate))), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement(SectionTitle, {
+    C: C
+  }, "Before screens — ", selDate === todayStr() ? "today" : prettyDate(fromYmd(selDate))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: 10
@@ -1412,7 +2256,7 @@ function App() {
       style: {
         ...s.card,
         borderColor: dn ? C.pine : C.line,
-        background: dn ? "#F1F6F1" : C.card,
+        background: dn ? darkMode ? "#162216" : "#F1F6F1" : C.card,
         overflow: "hidden",
         transition: "all .15s"
       }
@@ -1437,7 +2281,7 @@ function App() {
         borderRadius: 12,
         display: "grid",
         placeItems: "center",
-        background: dn ? C.pine : "#F3EAD6",
+        background: dn ? C.pine : darkMode ? "#332818" : "#F3EAD6",
         color: dn ? "#fff" : C.terra,
         flexShrink: 0
       }
@@ -1475,7 +2319,7 @@ function App() {
         padding: "8px 12px",
         borderRadius: 10,
         border: `1px solid ${C.line}`,
-        background: dn ? "rgba(255,255,255,.65)" : "#fff",
+        background: dn ? "rgba(255,255,255,.12)" : C.bg,
         fontSize: 14.5,
         fontFamily: "inherit",
         color: C.ink,
@@ -1483,11 +2327,139 @@ function App() {
         outline: "none"
       }
     })));
+  })), selDate === todayStr() && canFreeze && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      marginTop: 14,
+      padding: "14px 18px",
+      display: "flex",
+      alignItems: "center",
+      gap: 14,
+      borderColor: "#60a5fa",
+      background: darkMode ? "#0f1a2e" : "#EFF6FF"
+    }
+  }, /*#__PURE__*/React.createElement(Snowflake, {
+    size: 22,
+    style: {
+      color: "#60a5fa",
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: C.ink
+    }
+  }, "Use a streak freeze"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12.5,
+      color: C.soft,
+      marginTop: 2
+    }
+  }, "Protect your streak for today — 1 per week")), /*#__PURE__*/React.createElement("button", {
+    onClick: useFreeze,
+    style: {
+      padding: "8px 14px",
+      borderRadius: 10,
+      border: "none",
+      background: "#60a5fa",
+      color: "#fff",
+      fontFamily: "inherit",
+      fontWeight: 700,
+      cursor: "pointer",
+      fontSize: 13
+    }
+  }, "🧊 Freeze")), selDate === todayStr() && data.freezes && data.freezes[todayStr()] && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      marginTop: 14,
+      padding: "12px 18px",
+      borderColor: "#60a5fa",
+      background: darkMode ? "#0f1a2e" : "#EFF6FF",
+      display: "flex",
+      alignItems: "center",
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20
+    }
+  }, "🧊"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      color: "#60a5fa",
+      fontWeight: 600
+    }
+  }, "Streak frozen for today")), week.dailyResp && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      marginTop: 14,
+      padding: "14px 18px",
+      background: darkMode ? "#1e1a12" : C.bg
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.soft,
+      fontWeight: 600
+    }
+  }, "This week's family contribution"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 600,
+      marginTop: 2,
+      color: C.ink
+    }
+  }, week.dailyResp)), isSunday() && selDate === todayStr() && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      marginTop: 14,
+      padding: "16px 18px",
+      borderColor: C.gold,
+      background: darkMode ? "#1e1a0e" : "#FFFBEB"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: C.gold,
+      marginBottom: 8
+    }
+  }, "✨ Weekly Reflection"), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 13,
+      color: C.soft
+    }
+  }, "What was your best moment this week?"), /*#__PURE__*/React.createElement("textarea", {
+    value: data.weeklyReview && data.weeklyReview[weekKey] || "",
+    onChange: e => setWeeklyReview(e.target.value),
+    rows: 2,
+    placeholder: "Something you're proud of, something fun, something you learned…",
+    style: {
+      width: "100%",
+      marginTop: 6,
+      padding: "10px 12px",
+      borderRadius: 12,
+      border: `1px solid ${C.line}`,
+      background: C.bg,
+      fontSize: 15,
+      fontFamily: "inherit",
+      color: C.ink,
+      resize: "none",
+      outline: "none",
+      boxSizing: "border-box"
+    }
   })), MILESTONES.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 20
     }
-  }, /*#__PURE__*/React.createElement(SubLabel, null, "Finish before summer ends"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(SubLabel, {
+    C: C
+  }, "Finish before summer ends"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: 10
@@ -1496,7 +2468,19 @@ function App() {
     const dn = !!data.completedActivities[m.id];
     return /*#__PURE__*/React.createElement("button", {
       key: m.id,
-      onClick: () => toggleActivity(m.id),
+      onClick: () => {
+        if (dn) {
+          uncompleteActivity(m.id);
+        } else {
+          setNoteModal({
+            key: m.id,
+            item: m.label,
+            catTitle: "Summer Must-Do",
+            existing: "",
+            requireNote: false
+          });
+        }
+      },
       style: {
         ...s.card,
         display: "flex",
@@ -1506,7 +2490,7 @@ function App() {
         cursor: "pointer",
         textAlign: "left",
         borderColor: dn ? C.gold : C.line,
-        background: dn ? "#FFF8E6" : C.card
+        background: dn ? darkMode ? "#1e1a0e" : "#FFF8E6" : C.card
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
@@ -1515,7 +2499,7 @@ function App() {
         borderRadius: 11,
         display: "grid",
         placeItems: "center",
-        background: dn ? C.gold : "#F3EAD6",
+        background: dn ? C.gold : darkMode ? "#332818" : "#F3EAD6",
         flexShrink: 0,
         fontSize: 18
       }
@@ -1539,39 +2523,25 @@ function App() {
         color: C.line
       }
     }));
-  }))), week.dailyResp && /*#__PURE__*/React.createElement("div", {
-    style: {
-      ...s.card,
-      marginTop: 16,
-      padding: "14px 18px",
-      background: "#FBF3E2"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12,
-      color: C.soft,
-      fontWeight: 600
-    }
-  }, "This week's family contribution"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 16,
-      fontWeight: 600,
-      marginTop: 2
-    }
-  }, week.dailyResp)), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: "center",
       marginTop: 22,
       color: C.soft,
       fontSize: 14,
       fontStyle: "italic",
-      fontFamily: "'Fraunces', serif"
+      fontFamily: "'Fraunces',serif"
     }
-  }, DAILY.every(x => (data.dailyLogs[selDate] || {})[x.id]) ? "All four done. Grow your mind, body, independence — and the family. 🌞" : "The goal isn't to stay busy. The goal is to grow.")), tab === "week" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(SectionTitle, null, "Week of ", prettyDate(mondayOf(new Date()))), /*#__PURE__*/React.createElement(SubLabel, null, "Pick ONE daily responsibility"), /*#__PURE__*/React.createElement(ChoiceGrid, {
+  }, DAILY.every(x => (data.dailyLogs[selDate] || {})[x.id]) ? "All four done. Grow your mind, body, independence — and the family. 🌞" : "The goal isn't to stay busy. The goal is to grow.")), tab === "week" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(SectionTitle, {
+    C: C
+  }, "Week of ", prettyDate(mondayOf(new Date()))), /*#__PURE__*/React.createElement(SubLabel, {
+    C: C
+  }, "Pick ONE daily responsibility"), /*#__PURE__*/React.createElement(ChoiceGrid, {
     items: DAILY_RESP,
     selected: [week.dailyResp],
     onPick: setDailyResp,
-    accent: C.pine
+    accent: C.pine,
+    C: C
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
@@ -1579,7 +2549,9 @@ function App() {
       gap: 8,
       marginTop: 24
     }
-  }, /*#__PURE__*/React.createElement(SubLabel, null, "Pick TWO weekly responsibilities"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement(SubLabel, {
+    C: C
+  }, "Pick TWO weekly responsibilities"), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 12,
       color: week.weeklyResps.length > 2 ? C.terra : C.soft
@@ -1588,8 +2560,10 @@ function App() {
     cats: WEEKLY_RESP_CATS,
     selected: week.weeklyResps,
     onPick: toggleWeeklyResp,
-    accent: C.terra
+    accent: C.terra,
+    C: C
   }), /*#__PURE__*/React.createElement(SubLabel, {
+    C: C,
     style: {
       marginTop: 26
     }
@@ -1614,7 +2588,7 @@ function App() {
   }, g.label), /*#__PURE__*/React.createElement("input", {
     value: week.goals[g.id] || "",
     onChange: e => setGoal(g.id, e.target.value),
-    placeholder: "\u2026",
+    placeholder: "…",
     style: {
       width: "100%",
       marginTop: 4,
@@ -1630,7 +2604,7 @@ function App() {
     style: {
       ...s.card,
       padding: "14px 18px",
-      marginBottom: 18,
+      marginBottom: 12,
       display: "flex",
       alignItems: "center",
       justifyContent: "space-between"
@@ -1643,7 +2617,8 @@ function App() {
   }, "Activities completed"), /*#__PURE__*/React.createElement("div", {
     style: {
       ...s.h1,
-      fontSize: 26
+      fontSize: 26,
+      color: C.ink
     }
   }, activitiesDone, /*#__PURE__*/React.createElement("span", {
     style: {
@@ -1652,7 +2627,75 @@ function App() {
     }
   }, " / ", TOTAL_ACTIVITIES))), /*#__PURE__*/React.createElement(Ring, {
     pct: activitiesDone / TOTAL_ACTIVITIES
-  })), CATEGORIES.map(cat => {
+  })), suggestedActivity && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...s.card,
+      marginBottom: 14,
+      padding: "14px 18px",
+      borderColor: C.pine,
+      background: darkMode ? "#0e1a16" : "#F0FAF6"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 700,
+      color: C.pine,
+      textTransform: "uppercase",
+      letterSpacing: ".05em",
+      marginBottom: 6
+    }
+  }, "💡 What's next?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 15,
+      fontWeight: 600,
+      color: C.ink,
+      marginBottom: 4
+    }
+  }, suggestedActivity.item), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: C.soft,
+      marginBottom: 10
+    }
+  }, suggestedActivity.cat.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleActivityTap(suggestedActivity.cat, suggestedActivity.i),
+    style: {
+      flex: 2,
+      padding: "9px 14px",
+      borderRadius: 10,
+      border: "none",
+      background: C.pine,
+      color: "#fff",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: "pointer"
+    }
+  }, "✓ Mark complete"), /*#__PURE__*/React.createElement("button", {
+    onClick: getRandomUndone,
+    style: {
+      flex: 1,
+      padding: "9px 14px",
+      borderRadius: 10,
+      border: `1px solid ${C.line}`,
+      background: "transparent",
+      color: C.soft,
+      fontFamily: "inherit",
+      fontSize: 14,
+      cursor: "pointer",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(Shuffle, {
+    size: 15
+  }), " Try another"))), CATEGORIES.map(cat => {
     const open = openCat === cat.id;
     const dn = catDone(cat);
     return /*#__PURE__*/React.createElement("div", {
@@ -1679,7 +2722,8 @@ function App() {
     }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
         fontSize: 16,
-        fontWeight: 700
+        fontWeight: 700,
+        color: C.ink
       }
     }, cat.title), /*#__PURE__*/React.createElement("div", {
       style: {
@@ -1687,7 +2731,14 @@ function App() {
         color: C.soft,
         marginTop: 2
       }
-    }, dn, " of ", cat.items.length, " done")), /*#__PURE__*/React.createElement("div", {
+    }, dn, " of ", cat.items.length, " done", cat.reflect && /*#__PURE__*/React.createElement("span", {
+      style: {
+        marginLeft: 6,
+        fontSize: 11,
+        color: C.terra,
+        fontWeight: 600
+      }
+    }, "✍️ reflection"))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: "flex",
         alignItems: "center",
@@ -1703,23 +2754,23 @@ function App() {
         transition: "transform .2s",
         display: "inline-block"
       }
-    }, "\u203A"))), open && /*#__PURE__*/React.createElement("div", {
+    }, "›"))), open && /*#__PURE__*/React.createElement("div", {
       style: {
         borderTop: `1px solid ${C.line}`
       }
     }, cat.items.map((it, i) => {
-      const key = cat.id + ":" + i;
       const ck = done(cat.id, i);
+      const note = data.activityNotes && data.activityNotes[cat.id + ":" + i];
       return /*#__PURE__*/React.createElement("button", {
-        key: key,
-        onClick: () => toggleActivity(key),
+        key: cat.id + i,
+        onClick: () => handleActivityTap(cat, i),
         style: {
           width: "100%",
           padding: "12px 18px",
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           gap: 12,
-          background: ck ? "#F6F0E1" : "transparent",
+          background: ck ? darkMode ? "#1a1e16" : "#F6F0E1" : "transparent",
           border: "none",
           borderTop: i ? `1px solid ${C.bg}` : "none",
           cursor: "pointer",
@@ -1730,21 +2781,30 @@ function App() {
         size: 20,
         style: {
           color: C.pine,
-          flexShrink: 0
+          flexShrink: 0,
+          marginTop: 1
         }
       }) : /*#__PURE__*/React.createElement(Circle, {
         size: 20,
         style: {
           color: C.line,
-          flexShrink: 0
+          flexShrink: 0,
+          marginTop: 1
         }
-      }), /*#__PURE__*/React.createElement("span", {
+      }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
         style: {
           fontSize: 15,
           color: ck ? C.soft : C.ink,
           textDecoration: ck ? "line-through" : "none"
         }
-      }, it));
+      }, it), ck && note && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: C.soft,
+          marginTop: 3,
+          fontStyle: "italic"
+        }
+      }, "\"", note, "\"")));
     })));
   })), tab === "badges" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1752,7 +2812,9 @@ function App() {
       alignItems: "baseline",
       justifyContent: "space-between"
     }
-  }, /*#__PURE__*/React.createElement(SectionTitle, null, "Summer Badges"), /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement(SectionTitle, {
+    C: C
+  }, "Summer Badges"), /*#__PURE__*/React.createElement("span", {
     style: {
       fontSize: 14,
       fontWeight: 700,
@@ -1764,10 +2826,10 @@ function App() {
       fontSize: 13.5,
       marginTop: -4
     }
-  }, "Badges fill automatically as you check off the real activities. A parent can also grant one by tapping it."), /*#__PURE__*/React.createElement("div", {
+  }, "Badges fill automatically as you complete activities. A parent can grant one manually — they'll need their PIN."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
-      gridTemplateColumns: "repeat(auto-fill, minmax(155px, 1fr))",
+      gridTemplateColumns: "repeat(auto-fill,minmax(155px,1fr))",
       gap: 12,
       marginTop: 8
     }
@@ -1778,7 +2840,7 @@ function App() {
     const earned = auto || manual;
     return /*#__PURE__*/React.createElement("div", {
       key: b.id,
-      onClick: () => !auto && grantBadge(b.id),
+      onClick: () => handleGrantBadge(b.id),
       className: earned ? "badge-earned" : "",
       style: {
         ...s.card,
@@ -1787,7 +2849,7 @@ function App() {
         textAlign: "center",
         position: "relative",
         borderColor: earned ? C.gold : C.line,
-        background: earned ? "#FFF8E6" : C.card,
+        background: earned ? darkMode ? "#1e1a0e" : "#FFF8E6" : C.card,
         transition: "all .2s"
       }
     }, /*#__PURE__*/React.createElement(BadgeIcon, {
@@ -1798,7 +2860,8 @@ function App() {
       style: {
         fontSize: 15,
         fontWeight: 700,
-        marginTop: 4
+        marginTop: 4,
+        color: C.ink
       }
     }, b.name), /*#__PURE__*/React.createElement("div", {
       style: {
@@ -1835,6 +2898,7 @@ function App() {
       size: 14
     })));
   })), /*#__PURE__*/React.createElement(SectionTitle, {
+    C: C,
     style: {
       marginTop: 30
     }
@@ -1844,7 +2908,7 @@ function App() {
       fontSize: 13.5,
       marginTop: -4
     }
-  }, "For the end-of-summer celebration. Fill these in as the summer unfolds \u2014 they show up in the Summer report."), /*#__PURE__*/React.createElement("div", {
+  }, "For the end-of-summer celebration."), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "grid",
       gap: 10
@@ -1865,7 +2929,7 @@ function App() {
     value: data.capstone[i] || "",
     onChange: e => setCap(i, e.target.value),
     rows: 2,
-    placeholder: "\u2026",
+    placeholder: "…",
     style: {
       width: "100%",
       marginTop: 5,
@@ -1880,7 +2944,9 @@ function App() {
     }
   }))))), tab === "report" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     className: "no-print"
-  }, /*#__PURE__*/React.createElement(SectionTitle, null, "Progress Report"), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(SectionTitle, {
+    C: C
+  }, "Progress Report"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -1913,13 +2979,7 @@ function App() {
         color: on ? "#fff" : C.ink
       }
     }, o.label);
-  })), reportPeriod !== "all" && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 12.5,
-      color: C.soft,
-      marginBottom: 14
-    }
-  }, reportPeriod === "day" ? "Showing the day selected on the Today tab." : "Showing the week of the date selected on the Today tab."), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: 10,
@@ -1939,12 +2999,12 @@ function App() {
       background: C.terra,
       color: "#fff",
       fontFamily: "inherit",
-      fontSize: 14.5,
+      fontSize: 14,
       fontWeight: 600
     }
   }, /*#__PURE__*/React.createElement(Printer, {
     size: 17
-  }), " Save as PDF / Print"), /*#__PURE__*/React.createElement("button", {
+  }), " Save as PDF"), /*#__PURE__*/React.createElement("button", {
     onClick: doCopy,
     style: {
       display: "flex",
@@ -1957,14 +3017,32 @@ function App() {
       color: C.ink,
       border: `1.5px solid ${C.line}`,
       fontFamily: "inherit",
-      fontSize: 14.5,
+      fontSize: 14,
       fontWeight: 600
     }
   }, copied ? /*#__PURE__*/React.createElement(Check, {
     size: 17
   }) : /*#__PURE__*/React.createElement(Copy, {
     size: 17
-  }), " ", copied ? "Copied!" : "Copy as text"))), /*#__PURE__*/React.createElement("div", {
+  }), " ", copied ? "Copied!" : "Copy text"), /*#__PURE__*/React.createElement("button", {
+    onClick: doSMS,
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8,
+      padding: "11px 18px",
+      borderRadius: 12,
+      cursor: "pointer",
+      background: "#25D366",
+      color: "#fff",
+      border: "none",
+      fontFamily: "inherit",
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/React.createElement(MessageCircle, {
+    size: 17
+  }), " Send iMessage"))), /*#__PURE__*/React.createElement("div", {
     id: "report-print",
     style: {
       ...s.card,
@@ -1995,7 +3073,8 @@ function App() {
   }, active.emoji), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       ...s.h1,
-      fontSize: 21
+      fontSize: 21,
+      color: C.ink
     }
   }, active.name), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2007,9 +3086,10 @@ function App() {
   }, "Summer Growth Program"))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 12,
-      fontFamily: "'Fraunces', serif",
+      fontFamily: "'Fraunces',serif",
       fontSize: 17,
-      fontWeight: 600
+      fontWeight: 600,
+      color: C.ink
     }
   }, periodTitle(reportPeriod)), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2053,43 +3133,37 @@ function App() {
       color: C.soft,
       fontSize: 12
     }
-  }, "Contribute \xB7 Grow your mind \xB7 Grow your body \xB7 Grow your independence"));
+  }, "Contribute · Grow your mind · Grow your body · Grow your independence"));
 }
-const stepBtn = {
-  width: 28,
-  height: 28,
-  borderRadius: 8,
-  border: `1.5px solid ${C.line}`,
-  background: "#fff",
-  color: C.terra,
-  cursor: "pointer",
-  display: "grid",
-  placeItems: "center"
-};
+
+/* ===== SMALL COMPONENTS ===== */
 function SectionTitle({
   children,
-  style
+  style,
+  C
 }) {
   return /*#__PURE__*/React.createElement("h2", {
     style: {
-      fontFamily: "'Fraunces', serif",
+      fontFamily: "'Fraunces',serif",
       fontWeight: 600,
       fontSize: 19,
       margin: "0 0 14px",
       letterSpacing: "-.01em",
+      color: C.ink,
       ...style
     }
   }, children);
 }
 function SubLabel({
   children,
-  style
+  style,
+  C
 }) {
   return /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
       fontWeight: 700,
-      color: "#6E6051",
+      color: C.soft,
       textTransform: "uppercase",
       letterSpacing: ".05em",
       marginBottom: 8,
@@ -2101,7 +3175,8 @@ function ChoiceGrid({
   items,
   selected,
   onPick,
-  accent
+  accent,
+  C
 }) {
   const sel = new Set((selected || []).filter(Boolean));
   return /*#__PURE__*/React.createElement("div", {
@@ -2122,61 +3197,63 @@ function ChoiceGrid({
         fontFamily: "inherit",
         fontSize: 13.5,
         border: `1.5px solid ${on ? accent : "#E4D6BC"}`,
-        background: on ? accent : "#FFFCF4",
-        color: on ? "#fff" : "#2C2118",
+        background: on ? accent : C.card,
+        color: on ? "#fff" : C.ink,
         fontWeight: on ? 600 : 500,
         transition: "all .12s"
       }
     }, it);
   }));
 }
-function GroupedChoiceGrid({ cats, selected, onPick, accent }) {
+function GroupedChoiceGrid({
+  cats,
+  selected,
+  onPick,
+  accent,
+  C
+}) {
   const sel = new Set((selected || []).filter(Boolean));
-  return /*#__PURE__*/React.createElement("div", { style: { display: "grid", gap: 16 } },
-    cats.map(cat => /*#__PURE__*/React.createElement("div", { key: cat.title },
-      /*#__PURE__*/React.createElement("div", {
-        style: { fontSize: 11, fontWeight: 700, color: "#6E6051", textTransform: "uppercase", letterSpacing: ".07em", marginBottom: 8 }
-      }, cat.title),
-      /*#__PURE__*/React.createElement("div", { style: { display: "flex", flexWrap: "wrap", gap: 8 } },
-        cat.items.map(it => {
-          const on = sel.has(it);
-          return /*#__PURE__*/React.createElement("button", {
-            key: it, onClick: () => onPick(it),
-            style: { padding: "8px 13px", borderRadius: 999, cursor: "pointer", fontFamily: "inherit", fontSize: 13.5,
-              border: `1.5px solid ${on ? accent : "#E4D6BC"}`, background: on ? accent : "#FFFCF4",
-              color: on ? "#fff" : "#2C2118", fontWeight: on ? 600 : 500, transition: "all .12s" }
-          }, it);
-        })
-      )
-    ))
-  );
-}
-function BadgeIcon({ emoji, earned, color }) {
-  const cx = 45, cy = 60;
-  const pts = [];
-  for (let i = 0; i < 16; i++) {
-    const angle = i * Math.PI / 8 - Math.PI / 2;
-    const r = i % 2 === 0 ? 37 : 29;
-    pts.push((cx + r * Math.cos(angle)).toFixed(1) + ',' + (cy + r * Math.sin(angle)).toFixed(1));
-  }
-  const burst = pts.join(' ');
-  const c = earned ? color : '#C0B5A0';
-  return React.createElement('svg', { viewBox: '0 0 90 106', width: 82, height: 94, style: { display: 'block', margin: '0 auto 2px' } },
-    React.createElement('rect', { x: 37, y: 0, width: 16, height: 13, rx: 4, fill: c }),
-    React.createElement('polygon', { points: '34,11 56,11 53,20 37,20', fill: c, opacity: 0.75 }),
-    earned ? React.createElement('circle', { cx, cy, r: 41, fill: c, opacity: 0.13 }) : null,
-    React.createElement('polygon', { points: burst, fill: c, opacity: earned ? 1 : 0.4 }),
-    React.createElement('circle', { cx, cy, r: 26, fill: '#fff', opacity: earned ? 1 : 0.75 }),
-    React.createElement('circle', { cx, cy, r: 24, fill: earned ? '#FFFDF4' : '#F2EDE4' }),
-    React.createElement('circle', { cx, cy, r: 22, fill: 'none', stroke: c, strokeWidth: 1.5, opacity: 0.45, strokeDasharray: '3 2' }),
-    React.createElement('text', { x: cx, y: cy + 9, textAnchor: 'middle', fontSize: '22', fontFamily: 'Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif', style: { opacity: earned ? 1 : 0.55 } }, emoji),
-    ...(earned ? [
-      React.createElement('text', { key:'s1', x: 7, y: 44, fontSize: '10', fill: c, opacity: 0.85 }, '★'),
-      React.createElement('text', { key:'s2', x: 74, y: 44, fontSize: '10', fill: c, opacity: 0.85 }, '★'),
-      React.createElement('text', { key:'s3', x: 4, y: 82, fontSize: '8', fill: c, opacity: 0.65 }, '✦'),
-      React.createElement('text', { key:'s4', x: 76, y: 82, fontSize: '8', fill: c, opacity: 0.65 }, '✦'),
-    ] : [])
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "grid",
+      gap: 16
+    }
+  }, cats.map(cat => /*#__PURE__*/React.createElement("div", {
+    key: cat.title
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 700,
+      color: C.soft,
+      textTransform: "uppercase",
+      letterSpacing: ".07em",
+      marginBottom: 8
+    }
+  }, cat.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      flexWrap: "wrap",
+      gap: 8
+    }
+  }, cat.items.map(it => {
+    const on = sel.has(it);
+    return /*#__PURE__*/React.createElement("button", {
+      key: it,
+      onClick: () => onPick(it),
+      style: {
+        padding: "8px 13px",
+        borderRadius: 999,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        fontSize: 13.5,
+        border: `1.5px solid ${on ? accent : C.line}`,
+        background: on ? accent : C.card,
+        color: on ? "#fff" : C.ink,
+        fontWeight: on ? 600 : 500,
+        transition: "all .12s"
+      }
+    }, it);
+  })))));
 }
 function Bar({
   pct,
@@ -2237,25 +3314,28 @@ function Ring({
     fontSize: "14",
     fontWeight: "700",
     fill: "#2C2118",
-    fontFamily: "Bricolage Grotesque, sans-serif"
+    fontFamily: "system-ui,sans-serif"
   }, Math.round(pct * 100), "%"));
 }
 function Fonts() {
   return /*#__PURE__*/React.createElement("style", null, `@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..700&family=Fraunces:opsz,wght@9..144,400..600&display=swap');`);
 }
-function Styles() {
+function Styles({
+  C
+}) {
   return /*#__PURE__*/React.createElement("style", null, `
-  * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
-  button:active { transform: scale(.985); }
-  .fade-in { animation: fadeIn .35s ease both; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
-  .badge-earned { box-shadow: 0 4px 16px rgba(214,160,36,.22); }
-  ::placeholder { color: #B9A98C; }
+  * { -webkit-tap-highlight-color:transparent; box-sizing:border-box; }
+  button:active { transform:scale(.985); }
+  .fade-in { animation:fadeIn .35s ease both; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none} }
+  .badge-earned { box-shadow:0 4px 16px rgba(214,160,36,.22); }
+  ::placeholder { color:#B9A98C; }
+  textarea, input { font-family:inherit; }
   @media print {
-    #app-root > header, #app-root > nav, #app-root > footer, .no-print { display: none !important; }
-    #app-root > main { padding: 0 !important; }
-    #report-print { border: none !important; box-shadow: none !important; padding: 0 !important; }
-    body, #app-root { background: #fff !important; }
+    #app-root>header,#app-root>nav,#app-root>footer,.no-print{display:none!important}
+    #app-root>main{padding:0!important}
+    #report-print{border:none!important;box-shadow:none!important;padding:0!important}
+    body,#app-root{background:#fff!important}
   }
 `);
 }
